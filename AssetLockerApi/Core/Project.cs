@@ -3,10 +3,21 @@
 public class Project
 {
     private Dictionary<string, AssetData> _assets;
+    private ForceUnlockHelper _forceUnlockHelper;
 
     public Project()
     {
         _assets = new Dictionary<string, AssetData>();
+        _forceUnlockHelper = new ForceUnlockHelper();
+    }
+
+    public GetAllResponse GetAll()
+    {
+        GetAllResponse response = new GetAllResponse
+        {
+            LockedAssets = _assets.Values.ToList()
+        };
+        return response;
     }
 
     public IsLockedResponse IsLocked(IsLockedRequest isLockedRequest)
@@ -120,12 +131,29 @@ public class Project
         return response;
     }
 
-    public GetAllResponse GetAll()
+    public ForceUnlockResponse ForceUnlock(ForceUnlockRequest forceUnlockRequest)
     {
-        GetAllResponse response = new GetAllResponse
+        string path = forceUnlockRequest.Asset;
+        string user = forceUnlockRequest.User;
+        
+        ForceUnlockResponse response = new ForceUnlockResponse
         {
-            LockedAssets = _assets.Values.ToList()
+            Asset = path,
         };
+        
+        if (_assets.ContainsKey(path) && _assets[path].User != user)
+        {
+            response.RequestsLeft = _forceUnlockHelper.ForceUnlockByUser(path, user);
+            if (response.RequestsLeft == 0)
+            {
+                _assets.Remove(path);
+            }
+        }
+        else
+        {
+            response.RequestsLeft = 0;
+        }
+
         return response;
     }
 }

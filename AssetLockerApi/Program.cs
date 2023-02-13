@@ -40,4 +40,11 @@ app.MapPost("/unlockAssets", ([FromBody] UnlockAssetsRequest req) =>
     return response;
 });
 
+app.MapPost("/forceUnlock", ([FromBody] ForceUnlockRequest req) =>
+{
+    Project project = projectsController.GetProject(req.Project);
+    ForceUnlockResponse response = project.ForceUnlock(req);
+    return response;
+});
+
 app.Run();
